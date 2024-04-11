@@ -6,6 +6,7 @@ This repository contains a curated selection of React hooks that I personally us
 
 ## Available Hooks
 
+- `useAudioSourceLoader`: Manages the setting and reloading of audio sources in a `HTMLAudioElement`.
 - `useEventListener`: Adds event listeners to the window or any DOM element.
 - `useIsomorphicLayoutEffect`: Uses useEffect server-side and useLayoutEffect client-side for optimal rendering.
 - `useObjectURL`: Creates object URLs from Blob or MediaSource, facilitating efficient data management.
