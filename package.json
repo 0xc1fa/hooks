@@ -1,0 +1,42 @@
+{
+  "name": "hooks",
+  "version": "1.0.0",
+  "description": "🪝",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "jest --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chanyatfu/hooks.git"
+  },
+  "keywords": [
+    "react",
+    "reactjs",
+    "nextjs",
+    "react-hooks",
+    "hooks"
+  ],
+  "author": "Chan Yat Fu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/chanyatfu/hooks/issues"
+  },
+  "homepage": "https://github.com/chanyatfu/hooks#readme",
+  "dependencies": {
+    "react": "^18.2.0"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "@testing-library/jest-dom": "^6.4.2",
+    "@testing-library/react": "^15.0.0",
+    "@types/jest": "^29.5.12",
+    "@types/node": "^20.12.7",
+    "@types/react": "^18.2.75",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
