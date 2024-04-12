@@ -1,12 +1,13 @@
 import { renderHook } from "@testing-library/react";
 import { useSmoothTimeUpdate } from "./useSmoothTimeUpdate";
+import { useRef } from "react";
 
-jest.mock("../runWithAnimationFrame", () => ({
-  runWithAnimationFrame: jest.fn((cb) => {
-    const frameId = setInterval(cb, 1000 / 60);
-    return () => clearInterval(frameId);
-  }),
-}));
+function createMockAudioElement(paused: boolean): HTMLAudioElement {
+  return {
+    paused: paused,
+    dispatchEvent: jest.fn(),
+  } as unknown as HTMLAudioElement;
+}
 
 describe("useSmoothTimeUpdate", () => {
   beforeAll(() => {
@@ -14,16 +15,8 @@ describe("useSmoothTimeUpdate", () => {
   });
 
   it("dispatches 'timeupdate' when audio is playing", () => {
-    const mockAudioElement = {
-      current: {
-        paused: false,
-        dispatchEvent: jest.fn(),
-      },
-    } as unknown as React.RefObject<HTMLAudioElement>;
-
-    const { unmount } = renderHook(() =>
-      useSmoothTimeUpdate(mockAudioElement)
-    );
+    const mockAudioElement = useRef(createMockAudioElement(false));
+    const { unmount } = renderHook(() => useSmoothTimeUpdate(mockAudioElement));
 
     expect(mockAudioElement.current).toBeTruthy();
     jest.advanceTimersByTime(8);
@@ -36,16 +29,8 @@ describe("useSmoothTimeUpdate", () => {
   });
 
   it("does not dispatch 'timeupdate' when audio is paused", () => {
-    const mockAudioElement = {
-      current: {
-        paused: true,
-        dispatchEvent: jest.fn(),
-      },
-    } as unknown as React.RefObject<HTMLAudioElement>;
-
-    const { unmount } = renderHook(() =>
-      useSmoothTimeUpdate(mockAudioElement)
-    );
+    const mockAudioElement = useRef(createMockAudioElement(true));
+    const { unmount } = renderHook(() => useSmoothTimeUpdate(mockAudioElement));
     jest.advanceTimersByTime(1000);
 
     expect(mockAudioElement.current).toBeTruthy();
@@ -54,12 +39,10 @@ describe("useSmoothTimeUpdate", () => {
   });
 
   it("dispatches 'timeupdate' after the ref is not null", () => {
-    let mockAudioElement = {
-      current: null,
-    } as unknown as React.MutableRefObject<HTMLAudioElement>;
-    const { unmount } = renderHook(() =>
-      useSmoothTimeUpdate(mockAudioElement)
-    );
+    const mockAudioElement = useRef<HTMLAudioElement>(
+      null
+    ) as React.MutableRefObject<HTMLAudioElement | null>;
+    const { unmount } = renderHook(() => useSmoothTimeUpdate(mockAudioElement));
 
     expect(mockAudioElement.current).toBeNull();
     jest.advanceTimersByTime(50);
