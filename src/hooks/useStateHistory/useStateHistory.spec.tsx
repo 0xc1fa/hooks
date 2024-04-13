@@ -115,4 +115,36 @@ describe("useStateHistory", () => {
     expect(result.current.getValue(-2)).toBe(0);
     expect(result.current.getValue(-3)).toBe(0);
   });
+
+  it("handles batching of multiple state updates on history start correctly", () => {
+    const { result } = renderHook(() => useStateHistory(0));
+    expect(result.current.getValue()).toBe(0);
+    act(() => {
+      result.current.setValue(1);
+      result.current.setValue(2);
+      result.current.setValue(3);
+      result.current.setValue(0);
+    });
+    expect(result.current.getValue()).toBe(0);
+    act(() => result.current.undo());
+    expect(result.current.getValue()).toBe(0);
+  });
+
+  it("handles batching of multiple state updates on history end correctly", () => {
+    const { result } = renderHook(() => useStateHistory(0));
+    act(() => result.current.setValue(1));
+    act(() => result.current.setValue(2));
+    act(() => result.current.setValue(3));
+    act(() => {
+      result.current.setValue(4);
+      result.current.setValue(5);
+      result.current.setValue(6);
+      result.current.setValue(3);
+    });
+    expect(result.current.getValue()).toBe(3);
+    act(() => result.current.undo());
+    expect(result.current.getValue()).toBe(2);
+    act(() => result.current.undo());
+    expect(result.current.getValue()).toBe(1);
+  });
 });
