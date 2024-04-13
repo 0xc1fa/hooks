@@ -1,6 +1,6 @@
 # 🪝 hooks
 
-[![Code Climate maintainability](https://codeclimate.com/github/chanyatfu/hooks/badges/gpa.svg)](https://codeclimate.com/github/chanyatfu/hooks) [![codecov](https://codecov.io/gh/chanyatfu/hooks/graph/badge.svg?token=LXVFPBBP76)](https://codecov.io/gh/chanyatfu/hooks)
+[![codecov](https://codecov.io/gh/chanyatfu/hooks/graph/badge.svg?token=LXVFPBBP76)](https://codecov.io/gh/chanyatfu/hooks)
 
 This repository contains a curated selection of React hooks that I personally used for enhanced project functionality. It is regularly updated with new tools.
 
