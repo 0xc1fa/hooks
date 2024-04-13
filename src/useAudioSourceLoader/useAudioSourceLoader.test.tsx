@@ -1,6 +1,5 @@
 import { useAudioSourceLoader } from "./useAudioSourceLoader";
 import { renderHook } from "@testing-library/react";
-import { useRef } from "react";
 
 function createMockAudioElement(paused: boolean) {
   return {
@@ -14,7 +13,9 @@ function createMockAudioElement(paused: boolean) {
 
 describe("useAudioSourceLoader", () => {
   it("does nothing if audio ref is null", () => {
-    const audioRef = useRef<HTMLAudioElement>(null);
+    const audioRef = {
+      current: null,
+    };
     const dummyBlob = new Blob(["dummy content"], { type: "audio/mp3" });
     const dummyUrl = global.URL.createObjectURL(dummyBlob);
 
@@ -23,7 +24,7 @@ describe("useAudioSourceLoader", () => {
   });
 
   it("sets audio source and loads new audio when provided", () => {
-    const audioRef = useRef(createMockAudioElement(true));
+    const audioRef = { current: createMockAudioElement(true) };
     const dummyBlob = new Blob(["dummy content"], { type: "audio/mp3" });
     const dummyUrl = global.URL.createObjectURL(dummyBlob);
 
@@ -34,7 +35,7 @@ describe("useAudioSourceLoader", () => {
   });
 
   it("pauses, sets source, and reloads if audio is playing", () => {
-    const audioRef = useRef(createMockAudioElement(false));
+    const audioRef = { current: createMockAudioElement(false) };
     const dummyBlob = new Blob(["dummy content"], { type: "audio/mp3" });
     const dummyURL = global.URL.createObjectURL(dummyBlob);
 

@@ -16,10 +16,3 @@ global.URL.createObjectURL = jest.fn((obj) => {
     ? `blob:domain.test/${uuidv4()}`
     : `media:domain.test/${uuidv4()}`;
 });
-
-jest.mock("react", () => ({
-  ...jest.requireActual("react"),
-  useRef: jest.fn(function <T>(ref: T) {
-    return { current: ref } as React.MutableRefObject<T>;
-  }),
-}));
