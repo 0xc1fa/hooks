@@ -3,25 +3,28 @@ import { renderHook, act } from "@testing-library/react";
 import { useActivePointerState } from "./useActivePointerState";
 
 describe("useActivePointerState", () => {
+  let ref: { current: HTMLDivElement };
+  let result: { current: boolean };
+  let unmount: () => void;
+
+  beforeEach(() => {
+    ref = { current: document.createElement("div") };
+    const renderHookReturn = renderHook(() => useActivePointerState(ref));
+    result = renderHookReturn.result;
+    unmount = renderHookReturn.unmount;
+  });
+
   test("initializes as inactive", () => {
-    const ref = { current: document.createElement("div") };
-    const { result } = renderHook(() => useActivePointerState(ref));
     expect(result.current).toBe(false);
   });
 
   test("activates on pointerdown", () => {
-    const ref = { current: document.createElement("div") };
-    const { result } = renderHook(() => useActivePointerState(ref));
-
     act(() => fireEvent.pointerDown(ref.current));
 
     expect(result.current).toBe(true);
   });
 
   test("deactivates on pointerup", () => {
-    const ref = { current: document.createElement("div") };
-    const { result } = renderHook(() => useActivePointerState(ref));
-
     act(() => fireEvent.pointerDown(ref.current));
     act(() => fireEvent.pointerUp(document));
 
@@ -29,9 +32,6 @@ describe("useActivePointerState", () => {
   });
 
   test("deactivates on pointercancel", () => {
-    const ref = { current: document.createElement("div") };
-    const { result } = renderHook(() => useActivePointerState(ref));
-
     act(() => fireEvent.pointerDown(ref.current));
     act(() => fireEvent.pointerCancel(document));
 
@@ -39,11 +39,9 @@ describe("useActivePointerState", () => {
   });
 
   test("deactivates upon unmounting", () => {
-    const ref = { current: document.createElement("div") };
-    const { result, unmount } = renderHook(() => useActivePointerState(ref));
-
     act(() => fireEvent.pointerDown(ref.current));
     unmount();
+
     waitFor(() => !result.current).then(() => {
       expect(result.current).toBe(false);
     });
