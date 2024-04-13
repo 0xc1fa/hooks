@@ -1,4 +1,4 @@
-import { clamp } from "../utils/math";
+import { clamp } from "../../utils/math";
 import { useLayoutEffect, useRef, useState } from "react";
 
 function useStateHistory<T>(initialValue: T) {

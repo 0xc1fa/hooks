@@ -1,4 +1,4 @@
-import { runWithAnimationFrame } from "../runWithAnimationFrame";
+import { runWithAnimationFrame } from "../../utils/runWithAnimationFrame";
 import { useEffect } from "react";
 
 export function useSmoothTimeUpdate(
