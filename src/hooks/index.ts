@@ -7,3 +7,4 @@ export { useObjectURL } from "./useObjectURL";
 export type { ObjectWithURL } from "./useObjectURL";
 export { useSmoothTimeUpdate } from "./useSmoothTimeUpdate";
 export { useStateHistory } from "./useStateHistory";
+export type { StateHistory } from "./useStateHistory";

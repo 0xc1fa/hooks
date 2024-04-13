@@ -1,7 +1,15 @@
 import { clamp } from "../../utils/math";
 import { useLayoutEffect, useRef, useState } from "react";
 
-function useStateHistory<T>(initialValue: T) {
+export type StateHistory<T> = {
+  getValue: (relativeIndex?: number) => T;
+  setValue: (newValue: T) => void;
+  navigate: (magnitude: number) => void;
+  undo: (times?: number) => void;
+  redo: (times?: number) => void;
+};
+
+export function useStateHistory<T>(initialValue: T) {
   const [value, setValue] = useState<T>(initialValue);
   const history = useRef([initialValue]);
   const currentindex = useRef(0);
@@ -70,5 +78,3 @@ function useStateHistory<T>(initialValue: T) {
     redo,
   };
 }
-
-export { useStateHistory };
