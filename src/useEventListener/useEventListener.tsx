@@ -57,7 +57,7 @@ export function useEventListener<
   T extends DOMEventSubscriber,
   K extends MapEventMapsToKeys<GetDOMEventMaps<T>>[number] & string
 >(
-  target: React.RefObject<T>,
+  target: React.RefObject<T> | T,
   type: K,
   listener: (ev: MapEventMapsToEvent<GetDOMEventMaps<T>, K>[number]) => any,
   options?: boolean | AddEventListenerOptions
@@ -69,7 +69,7 @@ export function useEventListener<
   }, [listener]);
 
   useEffect(() => {
-    const targetCurrent = target.current;
+    const targetCurrent = "current" in target ? target.current : target;
     if (!targetCurrent) return;
 
     const listenerWrapper = (event: Event) => {
