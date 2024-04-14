@@ -118,5 +118,19 @@ export function useArray<T>(initialArray: T[] = []) {
     },
   };
 
-  return [array as ReadonlyArray<T>, actions] as const;
+  Object.defineProperties(
+    array,
+    Object.getOwnPropertyNames(actions).reduce(
+      (acc: { [key: string]: {} }, key) => {
+        acc[key] = {
+          enumerable: false,
+          value: actions[key as keyof ArrayActions<T>],
+        };
+        return acc;
+      },
+      {}
+    )
+  );
+
+  return array as ReadonlyArray<T> & ArrayActions<T>;
 }
