@@ -1,28 +1,46 @@
 import { clamp } from "../../utils/math";
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useIsomorphicLayoutEffect } from "../useIsomorphicLayoutEffect";
 
 export type StateHistory<T> = {
   getValue: (relativeIndex?: number) => T;
   setValue: (newValue: T) => void;
-  navigate: (magnitude: number) => void;
+  navigate: NavigateAction;
+};
+
+type NavigateAction = ((magnitude: number) => void) & {
   undo: (times?: number) => void;
   redo: (times?: number) => void;
 };
 
-export function useStateHistory<T>(initialValue: T) {
+export function useStateHistory<T>(initialValue: T): StateHistory<T> {
   const [value, setValue] = useState<T>(initialValue);
-  const history = useRef([initialValue]);
-  const currentindex = useRef(0);
-  const nextIndex = useRef(0);
+  const [history, setHistory] = useState([initialValue]);
+  const [currentindex, setCurrentIndex] = useState(0);
   const shouldUpdateHistory = useRef(false);
 
   const getValue = (relativeIndex: number = 0) => {
-    const targetIndex = clamp(currentindex.current + relativeIndex, {
+    const targetIndex = clamp(currentindex + relativeIndex, {
       min: 0,
-      max: history.current.length - 1,
+      max: history.length - 1,
     });
-    return history.current[targetIndex];
+    return history[targetIndex];
   };
+
+  const updateCurrentValue = (newValue: T) => {
+    setValue(newValue);
+    shouldUpdateHistory.current = true;
+  };
+
+  const navigate = ((magnitude: number) => {
+    const targetIndex = clamp(currentindex + magnitude, {
+      min: 0,
+      max: history.length - 1,
+    });
+    shouldUpdateHistory.current = false;
+    setValue(history[targetIndex]);
+    setCurrentIndex(targetIndex);
+  }) as NavigateAction;
 
   const undo = (times: number = 1) => {
     if (times < 0) {
@@ -38,43 +56,31 @@ export function useStateHistory<T>(initialValue: T) {
     navigate(times);
   };
 
-  const updateCurrentValue = (newValue: T) => {
-    setValue(newValue);
-    nextIndex.current = currentindex.current + 1;
-    if (newValue !== value) {
-      shouldUpdateHistory.current = true;
-    } else {
-      shouldUpdateHistory.current = false;
-    }
-  };
-
-  const navigate = (magnitude: number) => {
-    if (magnitude === 0) {
-      return;
-    }
-    const targetIndex = clamp(currentindex.current + magnitude, {
-      min: 0,
-      max: history.current.length - 1,
-    });
-    setValue(history.current[targetIndex]);
-    nextIndex.current = targetIndex;
-    shouldUpdateHistory.current = false;
-  };
-
   useLayoutEffect(() => {
-    currentindex.current = nextIndex.current;
     if (shouldUpdateHistory.current) {
-      history.current.splice(nextIndex.current, Infinity);
-      history.current.push(value);
-      currentindex.current = history.current.length - 1;
+      setHistory([...history.slice(0, currentindex + 1), value]);
+      setCurrentIndex(currentindex + 1);
     }
   }, [value]);
+
+  const naviagateActions = { undo, redo };
+  Object.defineProperties(
+    navigate,
+    Object.getOwnPropertyNames(naviagateActions).reduce(
+      (acc: { [key: string]: {} }, key) => {
+        acc[key] = {
+          enumerable: false,
+          value: naviagateActions[key as keyof typeof naviagateActions],
+        };
+        return acc;
+      },
+      {}
+    )
+  );
 
   return {
     getValue,
     setValue: updateCurrentValue,
     navigate,
-    undo,
-    redo,
   };
 }
