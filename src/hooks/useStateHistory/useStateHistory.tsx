@@ -1,6 +1,6 @@
 import { clamp } from "../../utils/math";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { useIsomorphicLayoutEffect } from "../useIsomorphicLayoutEffect";
+import { useLayoutEffect, useRef, useState } from "react";
+import { useArray } from "../useArray";
 
 export type StateHistory<T> = {
   getValue: (relativeIndex?: number) => T;
@@ -15,7 +15,7 @@ type NavigateAction = ((magnitude: number) => void) & {
 
 export function useStateHistory<T>(initialValue: T): StateHistory<T> {
   const [value, setValue] = useState<T>(initialValue);
-  const [history, setHistory] = useState([initialValue]);
+  const history = useArray([initialValue]);
   const [currentindex, setCurrentIndex] = useState(0);
   const shouldUpdateHistory = useRef(false);
 
@@ -58,7 +58,7 @@ export function useStateHistory<T>(initialValue: T): StateHistory<T> {
 
   useLayoutEffect(() => {
     if (shouldUpdateHistory.current) {
-      setHistory([...history.slice(0, currentindex + 1), value]);
+      history.splice(currentindex + 1, Infinity, value);
       setCurrentIndex(currentindex + 1);
     }
   }, [value]);
