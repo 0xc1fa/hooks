@@ -1,16 +1,22 @@
-import { useState } from "react";
-
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type ArrayActions<T> = {
   clear: () => ReadonlyArrayWithAction<T>;
-  copyWithin: (target: number, start: number, end?: number) => ReadonlyArrayWithAction<T>;
+  copyWithin: (
+    target: number,
+    start: number,
+    end?: number
+  ) => ReadonlyArrayWithAction<T>;
   delete: (index: number) => ReadonlyArray<T>;
   fill: (value: T, start?: number, end?: number) => ReadonlyArrayWithAction<T>;
   pop: () => ReadonlyArrayWithAction<T>;
   push: (...items: T[]) => ReadonlyArrayWithAction<T>;
   reverse: () => ReadonlyArrayWithAction<T>;
   setArray: (array: T[] | ((prev: T[]) => T[])) => ReadonlyArrayWithAction<T>;
-  setItem: (index: number, item: T | ((prev: T) => T)) => ReadonlyArrayWithAction<T>;
+  setItem: (
+    index: number,
+    item: T | ((prev: T) => T)
+  ) => ReadonlyArrayWithAction<T>;
   shift: () => ReadonlyArrayWithAction<T>;
   sort: (compareFn?: (a: T, b: T) => number) => ReadonlyArrayWithAction<T>;
   splice: (
@@ -24,15 +30,17 @@ type ArrayActions<T> = {
 type ReadonlyArrayWithAction<T> = ReadonlyArray<T> & ArrayActions<T>;
 
 export function useArray<T>(initialArray: T[] = []) {
-  const [array, setArray] = useState<ReadonlyArray<T>>(initialArray);
+  const [collection, setCollection] = useState<ReadonlyArray<T>>(initialArray);
+  const firstRender = useRef(true);
 
-  const actions: ArrayActions<T> = {
-    clear: () => {
-      setArray([]);
-      return array as ReadonlyArrayWithAction<T>;
-    },
-    copyWithin: (target: number, start: number, end?: number) => {
-      setArray((currentArray) => {
+  const clear = useCallback(() => {
+    setCollection([]);
+    return collection as ReadonlyArrayWithAction<T>;
+  }, []);
+
+  const copyWithin = useCallback(
+    (target: number, start: number, end?: number) => {
+      setCollection((currentArray) => {
         target = target < 0 ? currentArray.length + target : target;
         start = start < 0 ? currentArray.length + start : start;
         end =
@@ -59,70 +67,96 @@ export function useArray<T>(initialArray: T[] = []) {
 
         return newArray;
       });
-      return array as ReadonlyArrayWithAction<T>;
+      return collection as ReadonlyArrayWithAction<T>;
     },
-    delete: (index: number) => {
-      setArray((a) => a.filter((_, i) => i !== index));
-      return array as ReadonlyArrayWithAction<T>;
-    },
-    fill: (value: T, start?: number, end?: number) => {
-      start = start === undefined ? 0 : start;
-      start = start < 0 ? array.length + start : start;
-      end = end === undefined ? array.length : end;
-      end = end < 0 ? array.length + end : end;
-      setArray((a) =>
-        a.map((item, index) => (index >= start && index < end ? value : item))
-      );
-      return array as ReadonlyArrayWithAction<T>;
-    },
-    pop: () => {
-      setArray((a) => a.slice(0, -1));
-      return array as ReadonlyArrayWithAction<T>;
-    },
-    push: (...items: T[]) => {
-      setArray((a) => a.concat(...items));
-      return array as ReadonlyArrayWithAction<T>;
-    },
-    reverse: () => {
-      setArray((a) => a.toReversed());
-      return array as ReadonlyArrayWithAction<T>;
-    },
-    setArray: (newArray: T[] | ((prev: T[]) => T[])) => {
-      setArray((a) =>
-        typeof newArray === "function" ? (newArray as Function)(a) : newArray
-      );
-      return array as ReadonlyArrayWithAction<T>;
-    },
-    setItem: (index: number, item: T | ((prev: T) => T)) => {
-      if (typeof item === "function") {
-        setArray((a) => a.with(index, (item as Function)(a[index])));
-      } else {
-        setArray((a) => a.with(index, item));
-      }
-      return array as ReadonlyArrayWithAction<T>;
-    },
-    shift: () => {
-      setArray((a) => a.slice(1));
-      return array as ReadonlyArrayWithAction<T>;
-    },
-    sort: (compareFn?: (a: T, b: T) => number) => {
-      setArray((a) => a.toSorted(compareFn));
-      return array as ReadonlyArrayWithAction<T>;
-    },
-    splice: (start: number, deleteCount: number = 0, ...items: T[]) => {
-      start = start < 0 ? array.length + start : start;
+    []
+  );
+
+  const deleteFn = useCallback((index: number) => {
+    setCollection((a) => a.filter((_, i) => i !== index));
+    return collection as ReadonlyArrayWithAction<T>;
+  }, []);
+
+  const fill = useCallback((value: T, start?: number, end?: number) => {
+    start = start === undefined ? 0 : start;
+    start = start < 0 ? collection.length + start : start;
+    end = end === undefined ? collection.length : end;
+    end = end < 0 ? collection.length + end : end;
+    setCollection((a) =>
+      a.map((item, index) => (index >= start && index < end ? value : item))
+    );
+    return collection as ReadonlyArrayWithAction<T>;
+  }, []);
+
+  const pop = useCallback(() => {
+    setCollection((a) => a.slice(0, -1));
+    return collection as ReadonlyArrayWithAction<T>;
+  }, []);
+
+  const push = useCallback((...items: T[]) => {
+    setCollection((a) => a.concat(...items));
+    return collection as ReadonlyArrayWithAction<T>;
+  }, []);
+
+  const reverse = useCallback(() => {
+    setCollection((a) => a.toReversed());
+    return collection as ReadonlyArrayWithAction<T>;
+  }, []);
+
+  const setItem = useCallback((index: number, item: T | ((prev: T) => T)) => {
+    if (typeof item === "function") {
+      setCollection((a) => a.with(index, (item as Function)(a[index])));
+    } else {
+      setCollection((a) => a.with(index, item));
+    }
+    return collection as ReadonlyArrayWithAction<T>;
+  }, []);
+
+  const shift = useCallback(() => {
+    setCollection((a) => a.slice(1));
+    return collection as ReadonlyArrayWithAction<T>;
+  }, []);
+
+  const sort = useCallback((compareFn?: (a: T, b: T) => number) => {
+    setCollection((a) => a.toSorted(compareFn));
+    return collection as ReadonlyArrayWithAction<T>;
+  }, []);
+
+  const splice = useCallback(
+    (start: number, deleteCount: number = 0, ...items: T[]) => {
+      start = start < 0 ? collection.length + start : start;
       deleteCount = Math.max(0, deleteCount);
-      setArray((a) => a.toSpliced(start, deleteCount, ...items));
-      return array as ReadonlyArrayWithAction<T>;
+      setCollection((a) => a.toSpliced(start, deleteCount, ...items));
+      return collection as ReadonlyArrayWithAction<T>;
     },
-    unshift: (...items: T[]) => {
-      setArray((a) => a.toSpliced(0, 0, ...items));
-      return array as ReadonlyArrayWithAction<T>;
-    },
+    []
+  );
+
+  const unshift = useCallback((...items: T[]) => {
+    setCollection((a) => a.toSpliced(0, 0, ...items));
+    return collection as ReadonlyArrayWithAction<T>;
+  }, []);
+
+  const actions: ArrayActions<T> = {
+    clear,
+    copyWithin,
+    delete: deleteFn,
+    fill,
+    pop,
+    push,
+    reverse,
+    setArray: setCollection as unknown as (
+      array: T[] | ((prev: T[]) => T[])
+    ) => ReadonlyArrayWithAction<T>,
+    setItem,
+    shift,
+    sort,
+    splice,
+    unshift,
   };
 
   Object.defineProperties(
-    array,
+    collection,
     Object.getOwnPropertyNames(actions).reduce(
       (acc: { [key: string]: {} }, key) => {
         acc[key] = {
@@ -135,5 +169,5 @@ export function useArray<T>(initialArray: T[] = []) {
     )
   );
 
-  return array as ReadonlyArrayWithAction<T>;
+  return collection as ReadonlyArrayWithAction<T>;
 }
