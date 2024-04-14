@@ -1,24 +1,27 @@
 import { useState } from "react";
 
+
 type ArrayActions<T> = {
-  clear: () => ArrayActions<T>;
-  copyWithin: (target: number, start: number, end?: number) => ArrayActions<T>;
-  delete: (index: number) => ArrayActions<T>;
-  fill: (value: T, start?: number, end?: number) => ArrayActions<T>;
-  pop: () => ArrayActions<T>;
-  push: (...items: T[]) => ArrayActions<T>;
-  reverse: () => ArrayActions<T>;
-  setArray: (array: T[] | ((prev: T[]) => T[])) => ArrayActions<T>;
-  setItem: (index: number, item: T | ((prev: T) => T)) => ArrayActions<T>;
-  shift: () => ArrayActions<T>;
-  sort: (compareFn?: (a: T, b: T) => number) => ArrayActions<T>;
+  clear: () => ReadonlyArrayWithAction<T>;
+  copyWithin: (target: number, start: number, end?: number) => ReadonlyArrayWithAction<T>;
+  delete: (index: number) => ReadonlyArray<T>;
+  fill: (value: T, start?: number, end?: number) => ReadonlyArrayWithAction<T>;
+  pop: () => ReadonlyArrayWithAction<T>;
+  push: (...items: T[]) => ReadonlyArrayWithAction<T>;
+  reverse: () => ReadonlyArrayWithAction<T>;
+  setArray: (array: T[] | ((prev: T[]) => T[])) => ReadonlyArrayWithAction<T>;
+  setItem: (index: number, item: T | ((prev: T) => T)) => ReadonlyArrayWithAction<T>;
+  shift: () => ReadonlyArrayWithAction<T>;
+  sort: (compareFn?: (a: T, b: T) => number) => ReadonlyArrayWithAction<T>;
   splice: (
     start: number,
     deleteCount?: number,
     ...items: T[]
-  ) => ArrayActions<T>;
-  unshift: (...items: T[]) => ArrayActions<T>;
+  ) => ReadonlyArrayWithAction<T>;
+  unshift: (...items: T[]) => ReadonlyArrayWithAction<T>;
 };
+
+type ReadonlyArrayWithAction<T> = ReadonlyArray<T> & ArrayActions<T>;
 
 export function useArray<T>(initialArray: T[] = []) {
   const [array, setArray] = useState<ReadonlyArray<T>>(initialArray);
@@ -26,7 +29,7 @@ export function useArray<T>(initialArray: T[] = []) {
   const actions: ArrayActions<T> = {
     clear: () => {
       setArray([]);
-      return actions;
+      return array as ReadonlyArrayWithAction<T>;
     },
     copyWithin: (target: number, start: number, end?: number) => {
       setArray((currentArray) => {
@@ -56,11 +59,11 @@ export function useArray<T>(initialArray: T[] = []) {
 
         return newArray;
       });
-      return actions;
+      return array as ReadonlyArrayWithAction<T>;
     },
     delete: (index: number) => {
       setArray((a) => a.filter((_, i) => i !== index));
-      return actions;
+      return array as ReadonlyArrayWithAction<T>;
     },
     fill: (value: T, start?: number, end?: number) => {
       start = start === undefined ? 0 : start;
@@ -70,25 +73,25 @@ export function useArray<T>(initialArray: T[] = []) {
       setArray((a) =>
         a.map((item, index) => (index >= start && index < end ? value : item))
       );
-      return actions;
+      return array as ReadonlyArrayWithAction<T>;
     },
     pop: () => {
       setArray((a) => a.slice(0, -1));
-      return actions;
+      return array as ReadonlyArrayWithAction<T>;
     },
     push: (...items: T[]) => {
       setArray((a) => a.concat(...items));
-      return actions;
+      return array as ReadonlyArrayWithAction<T>;
     },
     reverse: () => {
       setArray((a) => a.toReversed());
-      return actions;
+      return array as ReadonlyArrayWithAction<T>;
     },
     setArray: (newArray: T[] | ((prev: T[]) => T[])) => {
       setArray((a) =>
         typeof newArray === "function" ? (newArray as Function)(a) : newArray
       );
-      return actions;
+      return array as ReadonlyArrayWithAction<T>;
     },
     setItem: (index: number, item: T | ((prev: T) => T)) => {
       if (typeof item === "function") {
@@ -96,25 +99,25 @@ export function useArray<T>(initialArray: T[] = []) {
       } else {
         setArray((a) => a.with(index, item));
       }
-      return actions;
+      return array as ReadonlyArrayWithAction<T>;
     },
     shift: () => {
       setArray((a) => a.slice(1));
-      return actions;
+      return array as ReadonlyArrayWithAction<T>;
     },
     sort: (compareFn?: (a: T, b: T) => number) => {
       setArray((a) => a.toSorted(compareFn));
-      return actions;
+      return array as ReadonlyArrayWithAction<T>;
     },
     splice: (start: number, deleteCount: number = 0, ...items: T[]) => {
       start = start < 0 ? array.length + start : start;
       deleteCount = Math.max(0, deleteCount);
       setArray((a) => a.toSpliced(start, deleteCount, ...items));
-      return actions;
+      return array as ReadonlyArrayWithAction<T>;
     },
     unshift: (...items: T[]) => {
       setArray((a) => a.toSpliced(0, 0, ...items));
-      return actions;
+      return array as ReadonlyArrayWithAction<T>;
     },
   };
 
@@ -132,5 +135,5 @@ export function useArray<T>(initialArray: T[] = []) {
     )
   );
 
-  return array as ReadonlyArray<T> & ArrayActions<T>;
+  return array as ReadonlyArrayWithAction<T>;
 }

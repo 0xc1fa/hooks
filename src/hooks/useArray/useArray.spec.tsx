@@ -4,7 +4,6 @@ import { useArray } from "./useArray";
 describe("useArray", () => {
   it("initialize with the specified initial array", () => {
     const { result } = renderHook(() => useArray([1, 2, 3]));
-    console.log(result.current);
     expect(result.current).toEqual([1, 2, 3]);
   });
 
@@ -101,13 +100,13 @@ describe("useArray", () => {
   it("mimic multiple array methods", () => {
     const { result } = renderHook(() => useArray([1, 2, 3]));
     act(() => {
-      result.current.push(4, 5);
-      result.current.reverse();
-      result.current.splice(1, 1, 6, 7);
-      result.current.pop();
-      result.current.shift();
-      result.current.setItem(1, 10);
-      result.current.unshift(6);
+      expect(result.current.push(4, 5)).toBe(result.current);
+      expect(result.current.reverse()).toBe(result.current);
+      expect(result.current.splice(1, 1, 6, 7)).toBe(result.current);
+      expect(result.current.pop()).toBe(result.current);
+      expect(result.current.shift()).toBe(result.current);
+      expect(result.current.setItem(1, 10)).toBe(result.current);
+      expect(result.current.unshift(6)).toBe(result.current);
     });
     expect(result.current).toEqual([6, 6, 10, 3, 2]);
   });
@@ -115,7 +114,7 @@ describe("useArray", () => {
   it("supports methods chaining", () => {
     const { result } = renderHook(() => useArray([1, 2, 3]));
     act(() => {
-      result.current
+      const final = result.current
         .push(4, 5)
         .reverse()
         .splice(1, 1, 6, 7)
@@ -123,6 +122,7 @@ describe("useArray", () => {
         .shift()
         .setItem(1, 10)
         .unshift(6);
+      expect(final).toBe(result.current);
     });
     expect(result.current).toEqual([6, 6, 10, 3, 2]);
   });
