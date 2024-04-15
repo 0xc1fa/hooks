@@ -91,4 +91,74 @@ describe("useMap", () => {
     expect(result.current.has("foo")).toBe(true);
     expect(result.current.has("qux")).toBe(false);
   });
+
+  it("handle consecutive setter calls correctly", () => {
+    const { result } = renderHook(() => useMap<string, number>());
+    act(() => {
+      result.current.set("foo", 1);
+      result.current.set("foo", 2);
+      result.current.set("bar", 3);
+    });
+    expect(result.current.get("foo")).toBe(2);
+    expect(result.current.get("bar")).toBe(3);
+  });
+
+  it("provides the map method", () => {
+    const { result } = renderHook(() => useMap());
+
+    act(() => result.current.set("foo", 1));
+    act(() => result.current.set("bar", 2));
+    act(() => result.current.set("baz", 3));
+
+    const mapped = result.current.map((value, key) => `${key}${value}`);
+    expect(mapped).toEqual(["foo1", "bar2", "baz3"]);
+  });
+
+  it("does not rerender if the set key have a new value but the reference is the same", () => {
+    const { result } = renderHook(() => useMap<string, number>());
+
+    const snapshot = [result.current];
+    act(() => result.current.set("foo", 1));
+    expect(result.current).not.toBe(snapshot[0]);
+
+    snapshot.push(result.current);
+    act(() => result.current.set("foo", 1));
+    expect(result.current).toBe(snapshot[1]);
+
+    snapshot.push(result.current);
+    act(() => result.current.set("foo", 2));
+    expect(result.current).not.toBe(snapshot[2]);
+  });
+
+  it("does not rerender if the clear method is called and the map is empty", () => {
+    const { result } = renderHook(() => useMap<string, number>());
+
+    const snapshot = [result.current];
+    act(() => result.current.clear());
+    expect(result.current).toBe(snapshot[0]);
+
+    snapshot.push(result.current);
+    act(() => result.current.set("foo", 1));
+    expect(result.current).not.toBe(snapshot[1]);
+
+    snapshot.push(result.current);
+    act(() => result.current.clear());
+    expect(result.current).not.toBe(snapshot[2]);
+  });
+
+  it("does not rerender if the delete method is called and the key does not exist", () => {
+    const { result } = renderHook(() => useMap<string, number>());
+
+    const snapshot = [result.current];
+    act(() => result.current.set("foo", 1));
+    expect(result.current).not.toBe(snapshot[0]);
+
+    snapshot.push(result.current);
+    act(() => result.current.delete("baz"));
+    expect(result.current).toBe(snapshot[1]);
+
+    snapshot.push(result.current);
+    act(() => result.current.delete("foo"));
+    expect(result.current).not.toBe(snapshot[2]);
+  });
 });
