@@ -12,27 +12,51 @@ describe("useSet", () => {
     expect(result.current.size).toBe(3);
   });
 
-  it("provides the add method", async () => {
-    const { result } = renderHook(() => useSet([1, 2, 3]));
-    await act(() => result.current.add(4));
+  it("provides the add method", () => {
+    const { result } = renderHook(() => useSet());
+    act(() => result.current.add(1));
+    expect(result.current.size).toBe(1);
+    act(() => result.current.add(2));
+    expect(result.current.size).toBe(2);
+    act(() => {
+      result.current.add(3);
+      result.current.add(4);
+    });
     expect(result.current.size).toBe(4);
-  });
-
-  it("supports adding multiple values at once", async () => {
-    const { result } = renderHook(() => useSet([1, 2, 3]));
-    await act(() => result.current.add(4, 5, 6));
+    act(() => {
+      result.current.add(5);
+      result.current.add(5);
+      result.current.add(5);
+      result.current.add(5);
+      result.current.add(6);
+      result.current.add(6);
+      result.current.add(6);
+      result.current.add(6);
+    });
     expect(result.current.size).toBe(6);
   });
 
-  it("provides the clear method", async () => {
-    const { result } = renderHook(() => useSet([1, 2, 3]));
-    await act(() => result.current.clear());
+  it("supports adding multiple values at once", () => {
+    const { result } = renderHook(() => useSet());
+    act(() => result.current.add(1, 2, 3, 3));
+    expect(result.current.size).toBe(3);
+    act(() => result.current.add(4, 5, 6, 6));
+    expect(result.current.size).toBe(6);
+  });
+
+  it("provides the clear method", () => {
+    const { result } = renderHook(() => useSet());
+    act(() => result.current.add(1, 2, 3, 3));
+    expect(result.current.size).toBe(3);
+    act(() => result.current.clear());
     expect(result.current.size).toBe(0);
   });
 
-  it("provides the delete method", async () => {
-    const { result } = renderHook(() => useSet([1, 2, 3]));
-    await act(() => result.current.delete(2));
+  it("provides the delete method", () => {
+    const { result } = renderHook(() => useSet());
+    act(() => result.current.add(1, 2, 3, 3));
+    expect(result.current.size).toBe(3);
+    act(() => result.current.delete(1));
     expect(result.current.size).toBe(2);
   });
 
@@ -55,5 +79,25 @@ describe("useSet", () => {
     const { result } = renderHook(() => useSet([1, 2, 3]));
     expect(result.current.has(2)).toBe(true);
     expect(result.current.has(4)).toBe(false);
+  });
+
+  it("does not update the reference when set is called with the same value", () => {
+    const { result } = renderHook(() => useSet());
+    
+    const snapshot = [result.current];
+    act(() => result.current.add(1));
+    expect(result.current).not.toBe(snapshot[0]);
+
+    snapshot.push(result.current);
+    act(() => result.current.add(2));
+    expect(result.current).not.toBe(snapshot[1]);
+
+    snapshot.push(result.current);
+    act(() => result.current.add(2));
+    expect(result.current).toBe(snapshot[2]);
+
+    snapshot.push(result.current);
+    act(() => result.current.add(1, 2));
+    expect(result.current).toBe(snapshot[3]);
   });
 });

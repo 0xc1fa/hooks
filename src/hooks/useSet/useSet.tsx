@@ -1,66 +1,66 @@
-import { useState } from "react";
+import { extendObjectWithProperties } from "@/utils/extendObjectWithProperties";
+import { useCallback, useState } from "react";
 
-type MutatingSetActions<T> = {
-  add: (...value: T[]) => ReadonlySetWithMutatingActions<T>;
-  clear: () => ReadonlySetWithMutatingActions<T>;
-  delete: (...value: T[]) => ReadonlySetWithMutatingActions<T>;
-};
+interface ImmutableSet<T> extends ReadonlySet<T> {
+  add: (...value: T[]) => ImmutableSet<T>;
+  clear: () => ImmutableSet<T>;
+  delete: (...value: T[]) => ImmutableSet<T>;
+  toggle: (...value: T[]) => ImmutableSet<T>;
+}
 
-type ReadonlySetWithMutatingActions<T> = ReadonlySet<T> & MutatingSetActions<T>;
-
-function useSet<T>(initialItems: T[] = []): ReadonlySetWithMutatingActions<T> {
+function useSet<T>(initialItems: T[] = []): ImmutableSet<T> {
   const [collection, setCollection] = useState<ReadonlySet<T>>(
     new Set<T>(initialItems)
   );
 
-  const actions: MutatingSetActions<T> = {
-    add: (...value: T[]) => {
-      setCollection((prev) => new Set([...Array.from(prev), ...value]));
-      return proxy as ReadonlySetWithMutatingActions<T>;
-    },
-    clear: () => {
-      setCollection(new Set());
-      return proxy as ReadonlySetWithMutatingActions<T>;
-    },
-    delete: (...value: T[]) => {
-      setCollection(
-        (prev) => new Set(Array.from(prev).filter((v) => !value.includes(v)))
-      );
-      return proxy as ReadonlySetWithMutatingActions<T>;
-    },
+  const add: ImmutableSet<T>["add"] = (...value) => {
+    setCollection((prev) =>
+      value.map((v) => prev.has(v)).every(Boolean)
+        ? prev
+        : new Set([...Array.from(prev), ...value])
+    );
+    return collection as ImmutableSet<T>;
   };
 
-  Object.defineProperties(
+  const clear: ImmutableSet<T>["clear"] = () => {
+    setCollection((prev) => (prev.size === 0 ? prev : new Set()));
+    return collection as ImmutableSet<T>;
+  };
+
+  const deleteFn: ImmutableSet<T>["delete"] = (...value) => {
+    setCollection((prev) =>
+      value.map((v) => prev.has(v)).some(Boolean)
+        ? new Set(Array.from(prev).filter((v) => !value.includes(v)))
+        : prev
+    );
+    return collection as ImmutableSet<T>;
+  };
+
+  const toggle: ImmutableSet<T>["toggle"] = (...value) => {
+    setCollection((prev) => {
+      const valuesToAdd = value.filter((v) => !prev.has(v));
+      const valuesToDelete = value.filter((v) => prev.has(v));
+      return new Set(
+        Array.from(prev)
+          .filter((v) => valuesToDelete.includes(v))
+          .concat(valuesToAdd)
+      );
+    });
+    return collection as ImmutableSet<T>;
+  };
+
+  const immutableMap = extendObjectWithProperties(
     collection,
-    Object.getOwnPropertyNames(actions).reduce(
-      (acc: { [key: string]: {} }, key) => {
-        acc[key] = {
-          enumerable: false,
-          value: actions[key as keyof MutatingSetActions<T>],
-        };
-        return acc;
-      },
-      {}
-    )
+    {
+      add: useCallback(add, [collection]),
+      clear: useCallback(clear, [collection]),
+      delete: useCallback(deleteFn, [collection]),
+      toggle: useCallback(toggle, [collection]),
+    },
+    { enumerable: false }
   );
 
-  const proxy = new Proxy(collection, {
-    get(target, prop, receiver) {
-      if (prop in actions) {
-        return actions[prop as keyof MutatingSetActions<T>];
-      }
-      if (typeof prop === "symbol") {
-        return Reflect.get(target, prop, receiver);
-      }
-      const targetProperty = target[prop as keyof ReadonlySet<T>];
-      if (typeof targetProperty === "function") {
-        return targetProperty.bind(target);
-      }
-      return targetProperty;
-    },
-  });
-
-  return proxy as ReadonlySetWithMutatingActions<T>;
+  return immutableMap;
 }
 
 export { useSet };
