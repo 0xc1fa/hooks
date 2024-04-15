@@ -1,45 +1,40 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { extendObjectWithProperties } from "../../utils/extendObjectWithProperties";
+import { useCallback, useState } from "react";
 
-type ArrayActions<T> = {
-  clear: () => ReadonlyArrayWithAction<T>;
+interface ImmutableArray<T> extends ReadonlyArray<T> {
+  clear: () => ImmutableArray<T>;
   copyWithin: (
     target: number,
     start: number,
     end?: number
-  ) => ReadonlyArrayWithAction<T>;
-  delete: (index: number) => ReadonlyArray<T>;
-  fill: (value: T, start?: number, end?: number) => ReadonlyArrayWithAction<T>;
-  pop: () => ReadonlyArrayWithAction<T>;
-  push: (...items: T[]) => ReadonlyArrayWithAction<T>;
-  reverse: () => ReadonlyArrayWithAction<T>;
-  setArray: (array: T[] | ((prev: T[]) => T[])) => ReadonlyArrayWithAction<T>;
-  setItem: (
-    index: number,
-    item: T | ((prev: T) => T)
-  ) => ReadonlyArrayWithAction<T>;
-  shift: () => ReadonlyArrayWithAction<T>;
-  sort: (compareFn?: (a: T, b: T) => number) => ReadonlyArrayWithAction<T>;
+  ) => ImmutableArray<T>;
+  delete: (index: number) => ImmutableArray<T>;
+  fill: (value: T, start?: number, end?: number) => ImmutableArray<T>;
+  pop: () => ImmutableArray<T>;
+  push: (...items: T[]) => ImmutableArray<T>;
+  reverse: () => ImmutableArray<T>;
+  setArray: (array: T[] | ((prev: T[]) => T[])) => ImmutableArray<T>;
+  setItem: (index: number, item: T | ((prev: T) => T)) => ImmutableArray<T>;
+  shift: () => ImmutableArray<T>;
+  sort: (compareFn?: (a: T, b: T) => number) => ImmutableArray<T>;
   splice: (
     start: number,
     deleteCount?: number,
     ...items: T[]
-  ) => ReadonlyArrayWithAction<T>;
-  unshift: (...items: T[]) => ReadonlyArrayWithAction<T>;
-};
-
-type ReadonlyArrayWithAction<T> = ReadonlyArray<T> & ArrayActions<T>;
+  ) => ImmutableArray<T>;
+  unshift: (...items: T[]) => ImmutableArray<T>;
+}
 
 export function useArray<T>(initialArray: T[] = []) {
   const [collection, setCollection] = useState<ReadonlyArray<T>>(initialArray);
-  const firstRender = useRef(true);
 
-  const clear = useCallback(() => {
+  const clear: ImmutableArray<T>["clear"] = useCallback(() => {
     setCollection([]);
-    return collection as ReadonlyArrayWithAction<T>;
+    return collection as ImmutableArray<T>;
   }, []);
 
-  const copyWithin = useCallback(
-    (target: number, start: number, end?: number) => {
+  const copyWithin: ImmutableArray<T>["copyWithin"] = useCallback(
+    (target, start, end?) => {
       setCollection((currentArray) => {
         target = target < 0 ? currentArray.length + target : target;
         start = start < 0 ? currentArray.length + start : start;
@@ -67,17 +62,17 @@ export function useArray<T>(initialArray: T[] = []) {
 
         return newArray;
       });
-      return collection as ReadonlyArrayWithAction<T>;
+      return collection as ImmutableArray<T>;
     },
     []
   );
 
-  const deleteFn = useCallback((index: number) => {
+  const deleteFn: ImmutableArray<T>["delete"] = useCallback((index) => {
     setCollection((a) => a.filter((_, i) => i !== index));
-    return collection as ReadonlyArrayWithAction<T>;
+    return collection as ImmutableArray<T>;
   }, []);
 
-  const fill = useCallback((value: T, start?: number, end?: number) => {
+  const fill: ImmutableArray<T>["fill"] = useCallback((value, start?, end?) => {
     start = start === undefined ? 0 : start;
     start = start < 0 ? collection.length + start : start;
     end = end === undefined ? collection.length : end;
@@ -85,89 +80,79 @@ export function useArray<T>(initialArray: T[] = []) {
     setCollection((a) =>
       a.map((item, index) => (index >= start && index < end ? value : item))
     );
-    return collection as ReadonlyArrayWithAction<T>;
+    return collection as ImmutableArray<T>;
   }, []);
 
-  const pop = useCallback(() => {
+  const pop: ImmutableArray<T>["pop"] = useCallback(() => {
     setCollection((a) => a.slice(0, -1));
-    return collection as ReadonlyArrayWithAction<T>;
+    return collection as ImmutableArray<T>;
   }, []);
 
-  const push = useCallback((...items: T[]) => {
+  const push: ImmutableArray<T>["push"] = useCallback((...items: T[]) => {
     setCollection((a) => a.concat(...items));
-    return collection as ReadonlyArrayWithAction<T>;
+    return collection as ImmutableArray<T>;
   }, []);
 
-  const reverse = useCallback(() => {
+  const reverse: ImmutableArray<T>["reverse"] = useCallback(() => {
     setCollection((a) => a.toReversed());
-    return collection as ReadonlyArrayWithAction<T>;
+    return collection as ImmutableArray<T>;
   }, []);
 
-  const setItem = useCallback((index: number, item: T | ((prev: T) => T)) => {
+  const setItem: ImmutableArray<T>["setItem"] = useCallback((index, item) => {
     if (typeof item === "function") {
       setCollection((a) => a.with(index, (item as Function)(a[index])));
     } else {
       setCollection((a) => a.with(index, item));
     }
-    return collection as ReadonlyArrayWithAction<T>;
+    return collection as ImmutableArray<T>;
   }, []);
 
-  const shift = useCallback(() => {
+  const shift: ImmutableArray<T>["shift"] = useCallback(() => {
     setCollection((a) => a.slice(1));
-    return collection as ReadonlyArrayWithAction<T>;
+    return collection as ImmutableArray<T>;
   }, []);
 
-  const sort = useCallback((compareFn?: (a: T, b: T) => number) => {
+  const sort: ImmutableArray<T>["sort"] = useCallback((compareFn?) => {
     setCollection((a) => a.toSorted(compareFn));
-    return collection as ReadonlyArrayWithAction<T>;
+    return collection as ImmutableArray<T>;
   }, []);
 
-  const splice = useCallback(
-    (start: number, deleteCount: number = 0, ...items: T[]) => {
+  const splice: ImmutableArray<T>["splice"] = useCallback(
+    (start, deleteCount = 0, ...items) => {
       start = start < 0 ? collection.length + start : start;
       deleteCount = Math.max(0, deleteCount);
       setCollection((a) => a.toSpliced(start, deleteCount, ...items));
-      return collection as ReadonlyArrayWithAction<T>;
+      return collection as ImmutableArray<T>;
     },
     []
   );
 
-  const unshift = useCallback((...items: T[]) => {
+  const unshift: ImmutableArray<T>["unshift"] = useCallback((...items: T[]) => {
     setCollection((a) => a.toSpliced(0, 0, ...items));
-    return collection as ReadonlyArrayWithAction<T>;
+    return collection as ImmutableArray<T>;
   }, []);
 
-  const actions: ArrayActions<T> = {
-    clear,
-    copyWithin,
-    delete: deleteFn,
-    fill,
-    pop,
-    push,
-    reverse,
-    setArray: setCollection as unknown as (
-      array: T[] | ((prev: T[]) => T[])
-    ) => ReadonlyArrayWithAction<T>,
-    setItem,
-    shift,
-    sort,
-    splice,
-    unshift,
-  };
-
-  Object.defineProperties(
+  const immutableArray = extendObjectWithProperties(
     collection,
-    Object.getOwnPropertyNames(actions).reduce(
-      (acc: { [key: string]: {} }, key) => {
-        acc[key] = {
-          enumerable: false,
-          value: actions[key as keyof ArrayActions<T>],
-        };
-        return acc;
-      },
-      {}
-    )
+    {
+      clear,
+      copyWithin,
+      delete: deleteFn,
+      fill,
+      pop,
+      push,
+      reverse,
+      setArray: setCollection as unknown as (
+        array: T[] | ((prev: T[]) => T[])
+      ) => ImmutableArray<T>,
+      setItem,
+      shift,
+      sort,
+      splice,
+      unshift,
+    },
+    { enumerable: false }
   );
 
-  return collection as ReadonlyArrayWithAction<T>;
+  return immutableArray;
 }
