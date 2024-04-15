@@ -1,10 +1,13 @@
 export { useActivePointerState } from "./useActivePointerState";
+export { useArray } from "./useArray";
 export { useAudioSourceLoader } from "./useAudioSourceLoader";
 export { useBoolean } from "./useBoolean";
 export { useEventListener } from "./useEventListener";
 export { useIsomorphicLayoutEffect } from "./useIsomorphicLayoutEffect";
+export { useMap } from "./useMap";
 export { useObjectURL } from "./useObjectURL";
 export type { ObjectWithURL } from "./useObjectURL";
+export { useSet } from "./useSet";
 export { useSmoothTimeUpdate } from "./useSmoothTimeUpdate";
 export { useStateHistory } from "./useStateHistory";
 export type { StateHistory } from "./useStateHistory";
