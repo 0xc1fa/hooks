@@ -11,11 +11,6 @@ describe("useObjectURL", () => {
     jest.resetAllMocks();
   });
 
-  test("returns null without arguments", () => {
-    const { result } = renderHook(() => useObjectURL());
-    expect(result.current[0]).toBeNull();
-  });
-
   test("returns null for null input", () => {
     const { result } = renderHook(() => useObjectURL(null));
     expect(result.current[0]).toBeNull();
@@ -37,7 +32,7 @@ describe("useObjectURL", () => {
 
   test("updates blob and URL for new blob setter input", () => {
     const dummyBlob = new Blob();
-    const { result } = renderHook(() => useObjectURL());
+    const { result } = renderHook(() => useObjectURL(null));
     act(() => result.current[1](dummyBlob));
     expect(result.current[0]).toEqual({ obj: dummyBlob, url: "mockAudioUrl" });
   });

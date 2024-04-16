@@ -5,27 +5,30 @@ type ObjectWithURL<T extends Blob | MediaSource> = {
   url: string;
 } | null;
 
-function useObjectURL<T extends Blob | MediaSource>(initialObj?: T | null) {
-  const getObjectURL = (obj: T) => ({
-    obj: obj,
-    url: URL.createObjectURL(obj),
-  });
+function createObjectWithURL<T extends Blob | MediaSource>(
+  obj: T
+): ObjectWithURL<T> {
+  return { obj, url: URL.createObjectURL(obj) };
+}
 
-  return useReducer(
-    (
-      state: ObjectWithURL<T> | null,
-      obj: T | null
-    ): ObjectWithURL<T> | null => {
-      if (state?.url) {
-        URL.revokeObjectURL(state.url);
-      }
-      if (!obj) {
-        return null;
-      }
-      return getObjectURL(obj);
-    },
-    initialObj ? getObjectURL(initialObj) : null
-  );
+function getObjectURLString<T extends Blob | MediaSource>(
+  obj: T | null
+): ObjectWithURL<T> | null {
+  return obj ? createObjectWithURL(obj) : null;
+}
+
+function objectURLReducer<T extends Blob | MediaSource>(
+  state: ObjectWithURL<T> | null,
+  obj: T | null
+): ObjectWithURL<T> | null {
+  if (state?.url) {
+    URL.revokeObjectURL(state.url);
+  }
+  return getObjectURLString(obj);
+}
+
+function useObjectURL<T extends Blob | MediaSource>(initialObj: T | null) {
+  return useReducer(objectURLReducer, initialObj, getObjectURLString);
 }
 
 export { useObjectURL };
