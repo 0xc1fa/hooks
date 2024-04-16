@@ -1,13 +1,18 @@
-import { useCallback, useState } from "react";
+import { useReducer } from "react";
 
-function useBoolean(initialValue: boolean = false) {
-  const [value, setValue] = useState(initialValue);
-
-  const setTrue = useCallback(() => setValue(true), []);
-  const setFalse = useCallback(() => setValue(false), []);
-  const toggle = useCallback(() => setValue((prev) => !prev), []);
-
-  return { value, setTrue, setFalse, toggle };
+function initializer<T>(args: T): boolean {
+  return args == true;
 }
 
-export { useBoolean };
+function reducer<T>(state: boolean, action: T | typeof toggle): boolean {
+  return action === toggle ? !state : initializer(action);
+}
+
+function useBoolean<T = boolean>(initialValue: T = false as T) {
+  return useReducer(reducer<T>, initialValue, initializer<T>);
+}
+
+const toggle = Symbol("toggle");
+useBoolean.toggle = toggle;
+
+export { useBoolean, toggle };

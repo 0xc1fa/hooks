@@ -3,15 +3,13 @@ import { useEventListener } from "../useEventListener";
 import { useBoolean } from "../useBoolean";
 
 function useActivePointerState(ref: React.RefObject<HTMLElement>) {
-  const { value, setTrue, setFalse } = useBoolean();
+  const [value, setValue] = useBoolean();
 
-  useEventListener(ref, "pointerdown", setTrue);
-  useEventListener(document, "pointerup", setFalse);
-  useEventListener(document, "pointercancel", setFalse);
+  useEventListener(ref, "pointerdown", () => setValue(true));
+  useEventListener(document, "pointerup", () => setValue(false));
+  useEventListener(document, "pointercancel", () => setValue(false));
 
-  useEffect(() => {
-    return () => setFalse();
-  }, []);
+  useEffect(() => () => setValue(false), []);
 
   return value;
 }

@@ -9,9 +9,7 @@ describe("useActivePointerState", () => {
 
   beforeEach(() => {
     ref = { current: document.createElement("div") };
-    const renderHookReturn = renderHook(() => useActivePointerState(ref));
-    result = renderHookReturn.result;
-    unmount = renderHookReturn.unmount;
+    ({ result, unmount } = renderHook(() => useActivePointerState(ref)));
   });
 
   test("initializes as inactive", () => {
@@ -20,30 +18,26 @@ describe("useActivePointerState", () => {
 
   test("activates on pointerdown", () => {
     act(() => fireEvent.pointerDown(ref.current));
-
     expect(result.current).toBe(true);
   });
 
   test("deactivates on pointerup", () => {
     act(() => fireEvent.pointerDown(ref.current));
     act(() => fireEvent.pointerUp(document));
-
     expect(result.current).toBe(false);
   });
 
   test("deactivates on pointercancel", () => {
     act(() => fireEvent.pointerDown(ref.current));
     act(() => fireEvent.pointerCancel(document));
-
     expect(result.current).toBe(false);
   });
 
   test("deactivates upon unmounting", () => {
     act(() => fireEvent.pointerDown(ref.current));
     unmount();
-
-    waitFor(() => !result.current).then(() => {
-      expect(result.current).toBe(false);
-    });
+    waitFor(() => !result.current).then(() =>
+      expect(result.current).toBe(false)
+    );
   });
 });
