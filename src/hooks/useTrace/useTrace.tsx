@@ -1,14 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 
-export function useTrace<T>(value: T, maxLength: number = Infinity): T[] | T {
-  const [trace, setTrace] = useState<T[]>([]);
+function appendToHistory<T>(
+  state: T[],
+  action: { value: T; maxLength: number }
+): T[] {
+  return [action.value, ...state].slice(0, action.maxLength);
+}
 
-  useEffect(() => {
-    setTrace((prev) => {
-      const updatedTrace = [value, ...prev];
-      return updatedTrace.slice(0, maxLength);
-    });
-  }, [value, maxLength]);
-
+function useTrace<T>(value: T, maxLength: number = Infinity): T[] {
+  const [trace, addItem] = useReducer(appendToHistory<T>, new Array<T>());
+  useEffect(() => addItem({ value, maxLength }), [value, maxLength]);
   return trace;
 }
+
+export { useTrace };
