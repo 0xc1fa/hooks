@@ -11,3 +11,4 @@ export { useSet } from "./useSet";
 export { useSmoothTimeUpdate } from "./useSmoothTimeUpdate";
 export { useStateHistory } from "./useStateHistory";
 export type { StateHistory } from "./useStateHistory";
+export { useTrace } from "./useTrace";

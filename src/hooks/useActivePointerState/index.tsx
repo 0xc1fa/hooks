@@ -7,15 +7,19 @@ export {
 import { useEffect, useState } from "react";
 import { useEventListener } from "@/hooks/useEventListener";
 
-type PointerActiveInfo =
-  | {
-      isPointerDown: false;
-      initialPosition: null;
-    }
-  | {
-      isPointerDown: true;
-      initialPosition: PointerClientPosition;
-    };
+type PointerActivateState<T> = {
+  isPointerDown: true;
+  initialPosition: PointerClientPosition;
+  buffer: T;
+};
+
+type PointerInactiveState = {
+  isPointerDown: false;
+  initialPosition: null;
+  buffer: null;
+};
+
+type PointerActiveInfo<T> = PointerActivateState<T> | PointerInactiveState;
 
 type PointerClientPosition = {
   x: number;
@@ -23,43 +27,74 @@ type PointerClientPosition = {
 };
 
 function useActivePointerState(
-  ref: React.RefObject<HTMLElement>
-): PointerActiveInfo {
-  const [pointerActiveInfo, setPointerActiveInfo] = useState<PointerActiveInfo>(
-    {
-      isPointerDown: false,
-      initialPosition: null,
-    }
-  );
+  ref: React.RefObject<HTMLElement>,
+  callback: (event: PointerEvent, info: PointerActivateState<undefined>) => void,
+): PointerActiveInfo<undefined>;
+
+function useActivePointerState<T>(
+  ref: React.RefObject<HTMLElement>,
+  callback: (event: PointerEvent, info: PointerActivateState<T>) => void,
+  bufferCallback: (event: PointerEvent) => T,
+): PointerActiveInfo<T>;
+
+function useActivePointerState<T = undefined>(
+  ref: React.RefObject<HTMLElement>,
+  callback: (event: PointerEvent, info: PointerActivateState<T>) => void,
+  bufferCallback?: (event: PointerEvent) => T
+): PointerActiveInfo<T> {
+  const [pointerActiveInfo, setPointerActiveInfo] = useState<
+    PointerActiveInfo<T>
+  >(createInactiveInfo());
 
   useEventListener(ref, "pointerdown", (event) => {
-    setPointerActiveInfo({
-      isPointerDown: true,
-      initialPosition: { x: event.clientX, y: event.clientY },
-    });
+    ref.current?.setPointerCapture(event.pointerId);
+    const bufferValue = bufferCallback
+      ? bufferCallback(event)
+      : (undefined as T);
+    setPointerActiveInfo(
+      createActiveInfo<T>({ x: event.clientX, y: event.clientY }, bufferValue)
+    );
   });
+
+  useEventListener(ref, "pointermove", (event) => {
+    if (pointerActiveInfo.isPointerDown) {
+      callback(event, pointerActiveInfo);
+    }
+  });
+
   useEventListener(document, "pointerup", () => {
-    setPointerActiveInfo({
-      isPointerDown: false,
-      initialPosition: null,
-    });
+    setPointerActiveInfo(createInactiveInfo());
   });
+
   useEventListener(document, "pointercancel", () => {
-    setPointerActiveInfo({
-      isPointerDown: false,
-      initialPosition: null,
-    });
+    setPointerActiveInfo(createInactiveInfo());
   });
 
   // reset the value when the component unmounts
   useEffect(() => {
     return () => {
-      setPointerActiveInfo({
-        isPointerDown: false,
-        initialPosition: null,
-      });
+      setPointerActiveInfo(createInactiveInfo());
     };
   }, []);
 
   return pointerActiveInfo;
+}
+
+function createActiveInfo<T>(
+  initialPosition: PointerClientPosition,
+  bufferValue: T
+): PointerActivateState<T> {
+  return {
+    isPointerDown: true,
+    initialPosition: initialPosition,
+    buffer: bufferValue,
+  };
+}
+
+function createInactiveInfo<T>(): PointerInactiveState {
+  return {
+    isPointerDown: false,
+    initialPosition: null,
+    buffer: null,
+  };
 }
