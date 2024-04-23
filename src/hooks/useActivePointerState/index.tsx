@@ -6,12 +6,16 @@ export {
 
 import { useEffect, useState } from "react";
 import { useEventListener } from "@/hooks/useEventListener";
-import { useBoolean } from "@/hooks/useBoolean";
 
-type PointerActiveInfo = {
-  isPointerDown: boolean;
-  initialPosition: PointerClientPosition | null;
-};
+type PointerActiveInfo =
+  | {
+      isPointerDown: false;
+      initialPosition: null;
+    }
+  | {
+      isPointerDown: true;
+      initialPosition: PointerClientPosition;
+    };
 
 type PointerClientPosition = {
   x: number;
@@ -21,30 +25,41 @@ type PointerClientPosition = {
 function useActivePointerState(
   ref: React.RefObject<HTMLElement>
 ): PointerActiveInfo {
-  const [isPointerDown, setIsPointerDown] = useBoolean();
-  const [initialPosition, setInitialPosition] =
-    useState<PointerClientPosition | null>(null);
+  const [pointerActiveInfo, setPointerActiveInfo] = useState<PointerActiveInfo>(
+    {
+      isPointerDown: false,
+      initialPosition: null,
+    }
+  );
 
   useEventListener(ref, "pointerdown", (event) => {
-    setIsPointerDown(true);
-    setInitialPosition({ x: event.clientX, y: event.clientY });
+    setPointerActiveInfo({
+      isPointerDown: true,
+      initialPosition: { x: event.clientX, y: event.clientY },
+    });
   });
   useEventListener(document, "pointerup", () => {
-    setIsPointerDown(false);
-    setInitialPosition(null);
+    setPointerActiveInfo({
+      isPointerDown: false,
+      initialPosition: null,
+    });
   });
   useEventListener(document, "pointercancel", () => {
-    setIsPointerDown(false);
-    setInitialPosition(null);
+    setPointerActiveInfo({
+      isPointerDown: false,
+      initialPosition: null,
+    });
   });
 
   // reset the value when the component unmounts
   useEffect(() => {
     return () => {
-      setIsPointerDown(false);
-      setInitialPosition(null);
+      setPointerActiveInfo({
+        isPointerDown: false,
+        initialPosition: null,
+      });
     };
   }, []);
 
-  return { isPointerDown, initialPosition };
+  return pointerActiveInfo;
 }
