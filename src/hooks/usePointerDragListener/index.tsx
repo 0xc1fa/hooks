@@ -1,5 +1,5 @@
 export {
-  useActivePointerState,
+  usePointerDragListener,
   type PointerActiveInfo,
   type PointerClientPosition,
 };
@@ -26,18 +26,18 @@ type PointerClientPosition = {
   y: number;
 };
 
-function useActivePointerState(
+function usePointerDragListener(
   ref: React.RefObject<HTMLElement>,
-  callback: (event: PointerEvent, info: PointerActivateState<undefined>) => void,
+  callback: (event: PointerEvent, info: PointerActivateState<undefined>) => void
 ): PointerActiveInfo<undefined>;
 
-function useActivePointerState<T>(
+function usePointerDragListener<T>(
   ref: React.RefObject<HTMLElement>,
   callback: (event: PointerEvent, info: PointerActivateState<T>) => void,
-  bufferCallback: (event: PointerEvent) => T,
+  bufferCallback: (event: PointerEvent) => T
 ): PointerActiveInfo<T>;
 
-function useActivePointerState<T = undefined>(
+function usePointerDragListener<T = undefined>(
   ref: React.RefObject<HTMLElement>,
   callback: (event: PointerEvent, info: PointerActivateState<T>) => void,
   bufferCallback?: (event: PointerEvent) => T
@@ -91,7 +91,7 @@ function createActiveInfo<T>(
   };
 }
 
-function createInactiveInfo<T>(): PointerInactiveState {
+function createInactiveInfo(): PointerInactiveState {
   return {
     isPointerDown: false,
     initialPosition: null,

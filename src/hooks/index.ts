@@ -1,4 +1,4 @@
-export { useActivePointerState } from "./useActivePointerState";
+export { usePointerDragListener } from "./usePointerDragListener";
 export { useArray } from "./useArray";
 export { useAudioSourceLoader } from "./useAudioSourceLoader";
 export { useBoolean } from "./useBoolean";
