@@ -8,6 +8,7 @@
     "outDir": "dist",
     "declaration": true,
 
+    "forceConsistentCasingInFileNames": true,
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": false,
     "resolveJsonModule": true,
@@ -25,5 +26,6 @@
       "react/jsx-runtime": ["node_modules/react/jsx-runtime"]
     }
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "rollup.config.js"]
 }

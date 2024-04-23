@@ -9,10 +9,10 @@ export default {
   input: "src/index.ts",
   output: {
     sourcemap: true,
-    file: 'dist/index.min.js',
+    file: 'dist/index.js',
     format: "esm",
   },
-  // external: ["react"],
+  external: ["react"],
   plugins: [
     peerDepsExternal(),
     typescript(),
@@ -23,6 +23,6 @@ export default {
     }),
     nodeResolve(),
     commonjs(),
-    // terser(),
+   // terser(),
   ],
 };

@@ -2,16 +2,19 @@
   "name": "@chanyatfu/hooks",
   "version": "1.0.0",
   "description": "🪝",
+  "author": "Chan Yat Fu",
+  "license": "MIT",
   "type": "module",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
     "test": "jest",
     "coverage": "jest --coverage --watchAll",
-    "build": "rm -rf dist/ && rollup -c"
+    "build": "rm -rf dist/ && rollup -c",
+    "bnl": "pnpm build && pnpm link --global"
   },
   "repository": {
     "type": "git",
@@ -24,16 +27,15 @@
     "react-hooks",
     "hooks"
   ],
-  "author": "Chan Yat Fu",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/chanyatfu/hooks/issues"
   },
   "homepage": "https://github.com/chanyatfu/hooks#readme",
-  "dependencies": {
+  "peerDependencies": {
     "react": "^18.2.0"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-pipeline-operator": "^7.24.1",
     "@eslint/js": "^9.0.0",
     "@jest/globals": "^29.7.0",
     "@rollup/plugin-babel": "^6.0.4",
@@ -61,6 +63,8 @@
     "jest-mock": "^29.7.0",
     "jsdom": "^24.0.0",
     "rollup": "^4.14.2",
+    "rollup-plugin-dts": "^6.1.0",
+    "rollup-plugin-esbuild": "^6.1.1",
     "rollup-plugin-peer-deps-external": "^2.2.4",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.2",
