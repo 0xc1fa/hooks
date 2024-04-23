@@ -3,13 +3,14 @@
   "version": "1.0.0",
   "description": "🪝",
   "type": "module",
-  "main": "dist/index.min.js",
-  "types": "dist/index.d.ts",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "test": "jest --coverage",
+    "test": "jest",
+    "coverage": "jest --coverage --watchAll",
     "build": "rm -rf dist/ && rollup -c"
   },
   "repository": {
@@ -33,6 +34,7 @@
     "react": "^18.2.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
     "@jest/globals": "^29.7.0",
     "@rollup/plugin-babel": "^6.0.4",
     "@rollup/plugin-commonjs": "^25.0.7",
@@ -46,8 +48,17 @@
     "@types/node": "^20.12.7",
     "@types/react": "^18.2.75",
     "@types/uuid": "^9.0.8",
+    "@typescript-eslint/eslint-plugin": "^5.13.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-airbnb-typescript": "^18.0.0",
+    "eslint-plugin-react": "^7.34.1",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "globals": "^15.0.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
+    "jest-mock": "^29.7.0",
     "jsdom": "^24.0.0",
     "rollup": "^4.14.2",
     "rollup-plugin-peer-deps-external": "^2.2.4",
@@ -55,6 +66,7 @@
     "ts-node": "^10.9.2",
     "tslib": "^2.6.2",
     "typescript": "^5.4.5",
+    "typescript-eslint": "^7.7.0",
     "uuid": "^9.0.1"
   }
 }

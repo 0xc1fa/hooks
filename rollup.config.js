@@ -12,7 +12,7 @@ export default {
     file: 'dist/index.min.js',
     format: "esm",
   },
-  external: ["react"],
+  // external: ["react"],
   plugins: [
     peerDepsExternal(),
     typescript(),
@@ -23,6 +23,6 @@ export default {
     }),
     nodeResolve(),
     commonjs(),
-    terser(),
+    // terser(),
   ],
 };
