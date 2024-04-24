@@ -4,13 +4,14 @@ export {
   type PointerClientPosition,
 };
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useEventListener } from "@/hooks/useEventListener";
+import { useUnmount } from "../useUnmount";
 
-type PointerActivateState<T> = {
+type PointerActivateState<Buffer> = {
   isPointerDown: true;
   initialPosition: PointerClientPosition;
-  buffer: T;
+  buffer: Buffer;
 };
 
 type PointerInactiveState = {
@@ -19,7 +20,9 @@ type PointerInactiveState = {
   buffer: null;
 };
 
-type PointerActiveInfo<T> = PointerActivateState<T> | PointerInactiveState;
+type PointerActiveInfo<Buffer> =
+  | PointerActivateState<Buffer>
+  | PointerInactiveState;
 
 type PointerClientPosition = {
   x: number;
@@ -31,28 +34,31 @@ function usePointerDragListener(
   callback: (event: PointerEvent, info: PointerActivateState<undefined>) => void
 ): PointerActiveInfo<undefined>;
 
-function usePointerDragListener<T>(
+function usePointerDragListener<Buffer>(
   ref: React.RefObject<HTMLElement>,
-  callback: (event: PointerEvent, info: PointerActivateState<T>) => void,
-  bufferCallback: (event: PointerEvent) => T
-): PointerActiveInfo<T>;
+  callback: (event: PointerEvent, info: PointerActivateState<Buffer>) => void,
+  bufferCallback: (event: PointerEvent) => Buffer
+): PointerActiveInfo<Buffer>;
 
-function usePointerDragListener<T = undefined>(
+function usePointerDragListener<Buffer = undefined>(
   ref: React.RefObject<HTMLElement>,
-  callback: (event: PointerEvent, info: PointerActivateState<T>) => void,
-  bufferCallback?: (event: PointerEvent) => T
-): PointerActiveInfo<T> {
+  callback: (event: PointerEvent, info: PointerActivateState<Buffer>) => void,
+  bufferCallback?: (event: PointerEvent) => Buffer
+): PointerActiveInfo<Buffer> {
   const [pointerActiveInfo, setPointerActiveInfo] = useState<
-    PointerActiveInfo<T>
+    PointerActiveInfo<Buffer>
   >(createInactiveInfo());
 
   useEventListener(ref, "pointerdown", (event) => {
     ref.current?.setPointerCapture(event.pointerId);
     const bufferValue = bufferCallback
       ? bufferCallback(event)
-      : (undefined as T);
+      : (undefined as Buffer);
     setPointerActiveInfo(
-      createActiveInfo<T>({ x: event.clientX, y: event.clientY }, bufferValue)
+      createActiveInfo<Buffer>(
+        { x: event.clientX, y: event.clientY },
+        bufferValue
+      )
     );
   });
 
@@ -62,28 +68,19 @@ function usePointerDragListener<T = undefined>(
     }
   });
 
-  useEventListener(document, "pointerup", () => {
+  useEventListener(document, ["pointercancel", "pointerup"], () => {
     setPointerActiveInfo(createInactiveInfo());
   });
 
-  useEventListener(document, "pointercancel", () => {
-    setPointerActiveInfo(createInactiveInfo());
-  });
-
-  // reset the value when the component unmounts
-  useEffect(() => {
-    return () => {
-      setPointerActiveInfo(createInactiveInfo());
-    };
-  }, []);
+  useUnmount(() => setPointerActiveInfo(createInactiveInfo()));
 
   return pointerActiveInfo;
 }
 
-function createActiveInfo<T>(
+function createActiveInfo<Buffer>(
   initialPosition: PointerClientPosition,
-  bufferValue: T
-): PointerActivateState<T> {
+  bufferValue: Buffer
+): PointerActivateState<Buffer> {
   return {
     isPointerDown: true,
     initialPosition: initialPosition,
