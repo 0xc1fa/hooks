@@ -60,7 +60,7 @@ function useEventListener<
   K extends MapEventMapsToKeys<GetDOMEventMaps<T>>[number] & string
 >(
   target: React.RefObject<T> | T,
-  type: K,
+  type: K | K[],
   listener: (ev: MapEventMapsToEvent<GetDOMEventMaps<T>, K>[number]) => any,
   options?: boolean | AddEventListenerOptions
 ) {
@@ -80,13 +80,20 @@ function useEventListener<
       );
     };
 
-    targetCurrent.addEventListener(type, listenerWrapper, options);
-    return () => {
-      targetCurrent.removeEventListener(
-        type as string,
-        listenerWrapper,
-        options
-      );
-    };
+    if (Array.isArray(type)) {
+      for (const t of type) {
+        targetCurrent.addEventListener(t, listenerWrapper, options);
+      }
+      return () => {
+        for (const t of type) {
+          targetCurrent.removeEventListener(t, listenerWrapper, options);
+        }
+      };
+    } else {
+      targetCurrent.addEventListener(type, listenerWrapper, options);
+      return () => {
+        targetCurrent.removeEventListener(type, listenerWrapper, options);
+      };
+    }
   }, [type, target, options]);
 }
